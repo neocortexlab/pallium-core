@@ -1,5 +1,4 @@
 defmodule PalliumCore.Compiler do
-
   @agents_dir "agents"
   @agent_module_template """
   defmodule {{module}} do
