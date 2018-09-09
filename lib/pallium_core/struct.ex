@@ -15,21 +15,25 @@ defmodule PalliumCore.Struct do
     quote do
       defstruct unquote(fields)
 
-      @encoding :binary
+      @default_encoding :binary
 
-      def encode(%__MODULE__{} = struct) do
+      def encode(%__MODULE__{} = struct, encoding \\ @default_encoding) do
         unquote(keys)
         |> Enum.map(fn
-          key when key in unquote(atomic_keys) -> Map.get(struct, key) |> to_string()
-          key -> Map.get(struct, key)
+          key when key in unquote(atomic_keys) ->
+            Map.fetch!(struct, key)
+            |> to_string()
+
+          key ->
+            Map.fetch!(struct, key)
         end)
-        |> ExRLP.encode(encoding: @encoding)
+        |> ExRLP.encode(encoding: encoding)
       end
 
-      def decode(rlp) do
+      def decode(rlp, encoding \\ @default_encoding) do
         data =
           rlp
-          |> ExRLP.decode(encoding: @encoding)
+          |> ExRLP.decode(encoding: encoding)
           |> Enum.zip(unquote(keys))
           |> Enum.map(fn
             {value, key} when key in unquote(numeric_keys) ->

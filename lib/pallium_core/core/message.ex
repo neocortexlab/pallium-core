@@ -1,5 +1,5 @@
 defmodule PalliumCore.Core.Message do
   use PalliumCore.Struct,
-    action: "",
+    action: :none,
     props: ""
 end
