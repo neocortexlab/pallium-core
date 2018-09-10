@@ -1,4 +1,6 @@
 defmodule PalliumCore.Struct do
+  @exrlp_encodings ~w(binary hex)a
+
   defmacro __using__(fields) do
     keys = Keyword.keys(fields)
 
@@ -17,7 +19,9 @@ defmodule PalliumCore.Struct do
 
       @default_encoding :binary
 
-      def encode(%__MODULE__{} = struct, encoding \\ @default_encoding) do
+      def encode(struct, encoding \\ @default_encoding)
+
+      def encode(%__MODULE__{} = struct, encoding) when encoding in unquote(@exrlp_encodings) do
         unquote(keys)
         |> Enum.map(fn
           key when key in unquote(atomic_keys) ->
@@ -30,7 +34,15 @@ defmodule PalliumCore.Struct do
         |> ExRLP.encode(encoding: encoding)
       end
 
-      def decode(rlp, encoding \\ @default_encoding) do
+      def encode(%__MODULE__{} = struct, :base64) do
+        struct
+        |> encode(:binary)
+        |> Base.encode64()
+      end
+
+      def decode(rlp, encoding \\ @default_encoding)
+
+      def decode(rlp, encoding) when encoding in unquote(@exrlp_encodings) do
         data =
           rlp
           |> ExRLP.decode(encoding: encoding)
@@ -47,6 +59,12 @@ defmodule PalliumCore.Struct do
           end)
 
         struct(__MODULE__, data)
+      end
+
+      def decode(rlp, :base64) do
+        rlp
+        |> Base.decode64!()
+        |> decode(:binary)
       end
     end
   end

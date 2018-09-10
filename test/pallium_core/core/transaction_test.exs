@@ -22,4 +22,9 @@ defmodule PalliumCore.Core.TransactionTest do
     decoded = @tx |> Transaction.encode(:hex) |> Transaction.decode(:hex)
     assert decoded == @tx
   end
+
+  test "encodes transaction in base64 properly" do
+    decoded = @tx |> Transaction.encode(:base64) |> Transaction.decode(:base64)
+    assert decoded == @tx
+  end
 end
