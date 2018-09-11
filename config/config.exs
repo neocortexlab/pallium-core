@@ -2,6 +2,12 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+config :ed25519,
+  # hash_fn: {:crypto, :hash, [:sha], []}
+  # hash_fn: {:crypto, :hash, [:sha512], []}
+  hash_fn: {:crypto, :hash, [:sha256], []}
+  # hash_fn: {Blake2, :hash2b, [], [16]}
+
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
 # file won't be loaded nor affect the parent project. For this reason,
