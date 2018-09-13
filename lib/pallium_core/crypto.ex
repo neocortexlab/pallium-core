@@ -28,8 +28,7 @@ defmodule PalliumCore.Crypto do
 
   def decode_map(string) do
     string
-    |> String.split(",")
-    |> Enum.reject(&(&1 == ""))
+    |> String.split(",", trim: true)
     |> Map.new(fn pair_str ->
       [k, v] =
         pair_str
