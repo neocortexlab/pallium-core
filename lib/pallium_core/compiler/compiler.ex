@@ -3,7 +3,7 @@ defmodule PalliumCore.Compiler do
   @agent_module_template """
   defmodule {{module}} do
     import PalliumCore.Compiler.AgentMacro
-    alias Pallium.Env
+    alias Reml.Env
 
     @self "{{address}}"
 
