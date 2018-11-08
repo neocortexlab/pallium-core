@@ -1,0 +1,7 @@
+construct _params do
+  :ok
+end
+
+run _props do
+  ComplexAgentLib.foo()
+end

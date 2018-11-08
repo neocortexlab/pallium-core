@@ -3,13 +3,20 @@ defmodule PalliumCore.Compiler.CompilerTest do
 
   alias PalliumCore.Compiler
 
-  test "compiles" do
+  test "compiles simple agent" do
     address = "abcdef"
-    {:ok, code} = Compiler.compile_agent("test", address)
-    {:module, agent} = :code.load_binary(String.to_atom(address), 'nofile', code)
+    {:ok, compiled} = Compiler.compile_agent("simple", address)
+    {_, agent} = Compiler.load_agent(compiled)
 
     assert agent.construct(1) == :ok
-    assert agent.action("run", 33) == 66
-    assert agent.task("learn", 3) == 9
+    assert agent.run(33) == 66
+  end
+
+  test "compiles agent with lib files" do
+    address = "123456"
+    {:ok, compiled} = Compiler.compile_agent("complex", address)
+    {_, agent} = Compiler.load_agent(compiled)
+
+    assert agent.run(123) == :bar
   end
 end

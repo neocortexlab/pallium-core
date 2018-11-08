@@ -16,40 +16,50 @@ defmodule PalliumCore.Compiler do
   end
   """
 
+  def load_agent(modules) do
+    modules
+    |> Enum.map(fn {name, code} -> :code.load_binary(name, 'nofile', code) end)
+    |> Enum.at(0)
+  end
+
   def compile_agent(agent_name, address) do
-    with {:ok, agent_src} <- read_agent_source(agent_name) do
-      agent_src
-      |> agent_module(address)
-      |> compile(address)
-    end
-  end
-
-  defp read_agent_source(agent_name) do
-    @agents_dir
-    |> Path.join(agent_name <> ".agent")
-    |> File.read()
-  end
-
-  defp agent_module(code, address) do
-    @agent_module_template
-    |> String.replace("{{module}}", address |> String.to_atom() |> inspect())
-    |> String.replace("{{address}}", address)
-    |> String.replace("{{code}}", code)
-  end
-
-  defp compile(module_source, address) do
     try do
-      code =
-        module_source
-        |> Code.compile_string()
-        |> cleanup()
-        |> Keyword.get(String.to_atom(address))
-
-      {:ok, code}
+      {agent_file, lib_files} = discover_agent_files(agent_name)
+      {:ok, compile_agent_file(agent_file, address) ++ compile_files(lib_files, address)}
     rescue
       error ->
         {:error, error}
     end
+  end
+
+  defp discover_agent_files(agent_name) do
+    path = Path.join(@agents_dir, agent_name)
+    case File.dir?(path) do
+      true -> {Path.join(path, agent_name <> ".agent"), Path.wildcard(path <> "/lib/**/*.ex")}
+      false -> {path <> ".agent", []}
+    end
+  end
+
+  defp compile_files(files, _namespace) do
+    files
+    |> Enum.map(&Code.compile_file/1)
+    |> List.flatten()
+    |> cleanup()
+  end
+
+  defp compile_agent_file(agent_file, address) do
+    agent_file
+    |> File.read!()
+    |> construct_module(address)
+    |> Code.compile_string()
+    |> cleanup()
+  end
+
+  defp construct_module(code, address) do
+    @agent_module_template
+    |> String.replace("{{module}}", address |> String.to_atom() |> inspect())
+    |> String.replace("{{address}}", address)
+    |> String.replace("{{code}}", code)
   end
 
   defp cleanup(compiled) do

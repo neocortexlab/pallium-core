@@ -1,0 +1,7 @@
+construct _params do
+  :ok
+end
+
+run props do
+  props * 2
+end
