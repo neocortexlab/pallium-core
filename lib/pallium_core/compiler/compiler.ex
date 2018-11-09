@@ -18,8 +18,17 @@ defmodule PalliumCore.Compiler do
 
   def load_agent(modules) do
     modules
-    |> Enum.map(fn {name, code} -> :code.load_binary(name, 'nofile', code) end)
+    |> Enum.map(fn [name, code] -> :code.load_binary(String.to_atom(name), 'nofile', code) end)
     |> Enum.at(0)
+  end
+
+
+  def load_agent_modules([]), do: :ok
+  def load_agent_modules([[mod, binary] | rest]) do
+    case :code.load_binary(String.to_atom(mod), 'nofile', binary) do
+      {:module, _} -> load_agent_modules(rest)
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   def compile_agent(agent_name, address) do
@@ -68,6 +77,7 @@ defmodule PalliumCore.Compiler do
     |> purge_modules()
 
     compiled
+    |> Enum.map(fn {mod, code} -> [Atom.to_string(mod), code] end)
   end
 
   defp purge_modules([]), do: :ok
